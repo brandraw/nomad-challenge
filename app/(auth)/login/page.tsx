@@ -38,7 +38,7 @@ export default function Login() {
 
       {state?.success && (
         <div className="rounded-lg bg-green-600 h-12 flex items-center justify-start w-full p-5">
-          Success
+          Success!
         </div>
       )}
     </div>
