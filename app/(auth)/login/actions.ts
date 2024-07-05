@@ -3,12 +3,18 @@
 import { db } from "@/lib/db";
 import { z } from "zod";
 
+const passwordRegex = /^(?=.*\d).+$/;
+
 const loginSchema = z
   .object({
     email: z
       .string()
       .email()
       .toLowerCase()
+      .refine(
+        (email) => email.includes("@zod.com"),
+        "Only @zod.com emails are allowed"
+      )
       .refine(async (email) => {
         const user = await db.user.findUnique({
           where: {
@@ -21,8 +27,14 @@ const loginSchema = z
 
         return Boolean(user);
       }, "Email Not Exists"),
-    username: z.string().min(3).max(10).trim().toLowerCase(),
-    password: z.string(),
+    username: z.string().min(5).max(10).trim().toLowerCase(),
+    password: z
+      .string()
+      .min(10)
+      .regex(
+        passwordRegex,
+        "Password should contain at least one number (0123456789)."
+      ),
   })
   .superRefine(async ({ username, password }, ctx) => {
     const user = await db.user.findUnique({
