@@ -1,7 +1,7 @@
 export default function Home() {
   return (
-    <main>
-      <h1>Home</h1>
+    <main className="p-5">
+      <h1 className="text-3xl font-bold">Welcome To Nomad Challenge!</h1>
     </main>
   );
 }

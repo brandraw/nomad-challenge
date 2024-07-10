@@ -2,6 +2,8 @@
 
 import { db } from "@/lib/db";
 import { z } from "zod";
+import bcrypt from "bcrypt";
+import { UserLogin } from "@/lib/user-login";
 
 const passwordRegex = /^(?=.*\d).+$/;
 
@@ -11,10 +13,10 @@ const loginSchema = z
       .string()
       .email()
       .toLowerCase()
-      .refine(
-        (email) => email.includes("@zod.com"),
-        "Only @zod.com emails are allowed"
-      )
+      // .refine(
+      //   (email) => email.includes("@zod.com"),
+      //   "Only @zod.com emails are allowed"
+      // )
       .refine(async (email) => {
         const user = await db.user.findUnique({
           where: {
@@ -27,14 +29,12 @@ const loginSchema = z
 
         return Boolean(user);
       }, "Email Not Exists"),
-    username: z.string().min(5).max(10).trim().toLowerCase(),
-    password: z
-      .string()
-      .min(10)
-      .regex(
-        passwordRegex,
-        "Password should contain at least one number (0123456789)."
-      ),
+    username: z.string().min(4).max(10).trim().toLowerCase(),
+    password: z.string().min(1),
+    // .regex(
+    //   passwordRegex,
+    //   "Password should contain at least one number (0123456789)."
+    // ),
   })
   .superRefine(async ({ username, password }, ctx) => {
     const user = await db.user.findUnique({
@@ -42,6 +42,7 @@ const loginSchema = z
         username,
       },
       select: {
+        id: true,
         username: true,
         password: true,
       },
@@ -50,14 +51,14 @@ const loginSchema = z
     if (!user) {
       ctx.addIssue({
         code: "custom",
-        message: "No Username",
+        message: "Username Not Exists",
         path: ["username"],
         fatal: true,
       });
       return z.NEVER;
     }
 
-    const passwordCheck = password === user.password;
+    const passwordCheck = await bcrypt.compare(password, user.password || "");
 
     if (!passwordCheck) {
       ctx.addIssue({
@@ -70,6 +71,7 @@ const loginSchema = z
       return z.NEVER;
     }
 
+    await UserLogin(user.id);
     return true;
   });
 

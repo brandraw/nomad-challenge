@@ -13,8 +13,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body>
+    <html lang="ko">
+      <body className="max-w-screen-sm mx-auto w-full min-h-screen">
         <MainHeader />
         {children}
       </body>
