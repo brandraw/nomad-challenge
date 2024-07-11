@@ -1,8 +1,8 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "./lib/session";
 
 const publicRoutes = new Set([
-  "/",
+  "/home",
   "/login",
   "/create-account",
   "/kakao/start",
@@ -14,14 +14,14 @@ export async function middleware(req: NextRequest) {
   const isPublic = publicRoutes.has(req.nextUrl.pathname);
   const isLoggedIn = Boolean(session.id);
 
-  if (!isLoggedIn) {
-    if (!isPublic) {
-      return Response.redirect(new URL("/", req.url));
-    }
+  if (!isLoggedIn && !isPublic) {
+    const loginUrl = new URL("/login", req.url);
+    loginUrl.searchParams.set("redirect", req.nextUrl.pathname);
+    return NextResponse.redirect(loginUrl);
   }
   if (isLoggedIn) {
     if (isPublic) {
-      return Response.redirect(new URL("/profile", req.url));
+      return NextResponse.redirect(new URL("/profile", req.url));
     }
   }
 }
